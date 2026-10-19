@@ -5,15 +5,6 @@
     "virtualMachineSize": {
       "value": "Standard_D4as_v5"
     },
-    "winimageid": {
-      "value": "/subscriptions/3ef9ec97-1a86-45d1-bc2a-7ccdd879020d/resourceGroups/cloudlabs-mgmt/providers/Microsoft.Compute/galleries/sharedimagegallary/images/winimgdef-gen/versions/latest"
-    },
-    "linimageid": {
-      "value": "/subscriptions/3ef9ec97-1a86-45d1-bc2a-7ccdd879020d/resourceGroups/cloudlabs-mgmt/providers/Microsoft.Compute/galleries/sharedimagegallary/images/linuximgdef/versions/latest"
-    },
-    "linimageid2": {
-      "value": "/subscriptions/3ef9ec97-1a86-45d1-bc2a-7ccdd879020d/resourceGroups/cloudlabs-mgmt/providers/Microsoft.Compute/galleries/sharedimagegallary/images/IPCLine1VM-image-OT-lab/versions/latest"
-    },
     "windiskSizeGB": {
       "value": "128"
     },
@@ -42,7 +33,7 @@
       "value": "training"
     },
     "vmAdminPassword1": {
-      "value": "prtg4training"
+      "value": "Prtg4training!"
     },
     "vmAdminUserName2": {
       "value": "training"
