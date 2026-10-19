@@ -5,18 +5,6 @@
     "virtualMachineSize": {
       "type": "string"
     },
-    "winimageid": {
-      "type": "string"
-    },
-    "linimageid": {
-      "type": "string"
-    },
-    "linimageid2": {
-      "type": "string",
-      "metadata": {
-        "description": "Image reference for IPCLine1 VM (sharedimagegallary/images/IPCLine1VM-image-OT-lab). NOTE: this is a SPECIALIZED image, so no osProfile is supplied for this VM - login credentials are whatever was baked into the image when it was captured."
-      }
-    },
     "publicIpAddressType": {
       "type": "string"
     },
