@@ -73,13 +73,6 @@
     "resetUserPassword": {
       "type": "string"
     },
-    "hubResourceGroupName": {
-      "type": "string",
-      "defaultValue": "paessler-prod-vnet",
-      "metadata": {
-        "description": "Resource group containing the pre-existing shared VNet (paesslerLab-vNet-<location>) that all lab VMs are placed into directly. This VNet carries the S2S VPN connection to the customer's on-prem network, so the VMs must live inside it rather than in a peered spoke."
-      }
-    },
     "studentVnetFirstOctet": {
       "type": "string",
       "defaultValue": "10",
@@ -93,9 +86,6 @@
     "AzureSubscriptionID": "[subscription().subscriptionId]",
     "AzureTenantID": "[subscription().tenantId]",
     "location": "[resourceGroup().location]",
-    "virtualNetworkName": "[concat('paesslerLab-vNet-', variables('location'))]",
-    "subnetName": "Subnet",
-    "subnetRef": "[resourceId(parameters('hubResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
     "winvirtualMachineName": "PRTG-Core-Server",
     "winComputerName": "[toUpper(take(concat('PRTG', parameters('DeploymentID')), 15))]",
     "networkInterfaceName": "[concat(variables('winvirtualMachineName'), '-nic')]",
@@ -115,7 +105,14 @@
     "publicIpAddressName2": "[concat(variables('linvirtualMachineName2'), '-pip')]",
     "publicIpAddressDNSName2": "[concat('ipclinedns',parameters('DeploymentID'))]",
     "osdiskname2": "[concat('IPCLine1-OSDisk-', parameters('DeploymentID'))]",
-    "Enable-CloudLabsEmbeddedShadow": "[concat(' -vmAdminUserName ', parameters('vmAdminUserName') , ' -trainerUserName ', parameters('trainerUserName'), ' -trainerUserPassword ', parameters('trainerUserPassword'))]"
+    "Enable-CloudLabsEmbeddedShadow": "[concat(' -vmAdminUserName ', parameters('vmAdminUserName') , ' -trainerUserName ', parameters('trainerUserName'), ' -trainerUserPassword ', parameters('trainerUserPassword'))]",
+    "subnetName": "Subnet",
+    "virtualNetworkName": "[concat(variables('winvirtualMachineName'), '-vnet')]",
+    "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName'), variables('subnetName'))]",
+    "virtualNetworkName1": "[concat(variables('linvirtualMachineName'), '-vnet')]",
+    "subnetRef1": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName1'), variables('subnetName'))]",
+    "virtualNetworkName2": "[concat(variables('linvirtualMachineName2'), '-vnet')]",
+    "subnetRef2": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtualNetworkName2'), variables('subnetName'))]"
   },
   "resources": [
     {
@@ -186,6 +183,27 @@
       }
     },
     {
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('virtualNetworkName')]",
+      "apiVersion": "2020-08-01",
+      "location": "[variables('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.1.0.0/16"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('subnetName')]",
+            "properties": {
+              "addressPrefix": "10.1.0.0/24"
+            }
+          }
+        ]
+      }
+    },
+    {
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('networkInterfaceName')]",
       "apiVersion": "2015-06-15",
@@ -211,7 +229,8 @@
       },
       "dependsOn": [
         "[concat('Microsoft.Network/publicIpAddresses/', variables('publicIpAddressName'))]",
-        "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName'))]"
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName'))]",
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]"
       ]
     },
     {
@@ -225,14 +244,14 @@
           "vmSize": "[parameters('virtualMachineSize')]"
         },
         "osProfile": {
-            "computerName": "[variables('winComputerName')]",
-            "adminUsername": "[parameters('vmAdminUserName')]",
-            "adminPassword": "[parameters('vmAdminPassword')]",
-            "windowsConfiguration": {
-                "provisionVMAgent": true,
-                "enableAutomaticUpdates": true
-            }
-        },        
+          "computerName": "[variables('winComputerName')]",
+          "adminUsername": "[parameters('vmAdminUserName')]",
+          "adminPassword": "[parameters('vmAdminPassword')]",
+          "windowsConfiguration": {
+            "provisionVMAgent": true,
+            "enableAutomaticUpdates": true
+          }
+        },
         "networkProfile": {
           "networkInterfaces": [
             {
@@ -356,6 +375,27 @@
       }
     },
     {
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('virtualNetworkName1')]",
+      "apiVersion": "2020-08-01",
+      "location": "[variables('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.2.0.0/16"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('subnetName')]",
+            "properties": {
+              "addressPrefix": "10.2.0.0/24"
+            }
+          }
+        ]
+      }
+    },
+    {
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('networkInterfaceName1')]",
       "apiVersion": "2015-06-15",
@@ -367,7 +407,7 @@
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "subnet": {
-                "id": "[variables('subnetRef')]"
+                "id": "[variables('subnetRef1')]"
               },
               "publicIPAddress": {
                 "id": "[resourceId(resourceGroup().name,'Microsoft.Network/publicIpAddresses', variables('publicIpAddressName1'))]"
@@ -381,7 +421,8 @@
       },
       "dependsOn": [
         "[concat('Microsoft.Network/publicIpAddresses/', variables('publicIpAddressName1'))]",
-        "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName1'))]"
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName1'))]",
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName1'))]"
       ]
     },
     {
@@ -486,6 +527,27 @@
       }
     },
     {
+      "type": "Microsoft.Network/virtualNetworks",
+      "name": "[variables('virtualNetworkName2')]",
+      "apiVersion": "2020-08-01",
+      "location": "[variables('location')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "10.3.0.0/16"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('subnetName')]",
+            "properties": {
+              "addressPrefix": "10.3.0.0/24"
+            }
+          }
+        ]
+      }
+    },
+    {
       "type": "Microsoft.Network/networkInterfaces",
       "name": "[variables('networkInterfaceName2')]",
       "apiVersion": "2015-06-15",
@@ -497,7 +559,7 @@
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "subnet": {
-                "id": "[variables('subnetRef')]"
+                "id": "[variables('subnetRef2')]"
               },
               "publicIPAddress": {
                 "id": "[resourceId(resourceGroup().name,'Microsoft.Network/publicIpAddresses', variables('publicIpAddressName2'))]"
@@ -511,7 +573,8 @@
       },
       "dependsOn": [
         "[concat('Microsoft.Network/publicIpAddresses/', variables('publicIpAddressName2'))]",
-        "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName2'))]"
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName2'))]",
+        "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName2'))]"
       ]
     },
     {
@@ -589,65 +652,65 @@
     }
   ],
   "outputs": {
-  "PRTG Core Server DNS Name": {
-    "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName'))).dnsSettings.fqdn]",
-    "type": "string"
-  },
-  "labvm01 PRTG Core Server": {
-  "type": "string",
-  "value": "[variables('winvirtualMachineName')]"
-  },
-  "PRTG Core Server Username": {
-    "type": "string",
-    "value": "[parameters('vmAdminUserName')]"
-  },
-  "PRTG Core Server Password": {
-    "type": "string",
-    "value": "[parameters('resetUserPassword')]"
-  },
-  "labvm01 PRTG Core Server Private IP": {
-    "type": "string",
-    "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))).ipConfigurations[0].properties.privateIPAddress]"
-  },
-  "Ignition Gateway SCADA DNS Name": {
-    "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName1'))).dnsSettings.fqdn]",
-    "type": "string"
-  },
-  "labvm02 Ignition Gateway SCADA": {
-  "type": "string",
-  "value": "[variables('linvirtualMachineName')]"
-  },
-  "Ignition Gateway SCADA Username": {
-    "type": "string",
-    "value": "[parameters('vmAdminUserName1')]"
-  },
-  "Ignition Gateway SCADA Password": {
-    "type": "string",
-    "value": "[parameters('vmAdminPassword1')]"
-  },
-  "labvm02 Ignition Gateway SCADA Private IP": {
-    "type": "string",
-    "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName1'))).ipConfigurations[0].properties.privateIPAddress]"
-  },
-  "IPCLine1 DNS Name": {
-    "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName2'))).dnsSettings.fqdn]",
-    "type": "string"
-  },
-  "labvm03 IPCLine1": {
-  "type": "string",
-  "value": "[variables('linvirtualMachineName2')]"
-  },
-  "IPCLine1 Username": {
-    "type": "string",
-    "value": "[parameters('vmAdminUserName1')]"
-  },
-  "IPCLine1 Password": {
-    "type": "string",
-    "value": "[parameters('vmAdminPassword1')]"
-  },
-  "labvm 03 IPCLine1 Private IP": {
-    "type": "string",
-    "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName2'))).ipConfigurations[0].properties.privateIPAddress]"
+    "PRTG Core Server DNS Name": {
+      "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName'))).dnsSettings.fqdn]",
+      "type": "string"
+    },
+    "labvm01 PRTG Core Server": {
+      "type": "string",
+      "value": "[variables('winvirtualMachineName')]"
+    },
+    "PRTG Core Server Username": {
+      "type": "string",
+      "value": "[parameters('vmAdminUserName')]"
+    },
+    "PRTG Core Server Password": {
+      "type": "string",
+      "value": "[parameters('resetUserPassword')]"
+    },
+    "labvm01 PRTG Core Server Private IP": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))).ipConfigurations[0].properties.privateIPAddress]"
+    },
+    "Ignition Gateway SCADA DNS Name": {
+      "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName1'))).dnsSettings.fqdn]",
+      "type": "string"
+    },
+    "labvm02 Ignition Gateway SCADA": {
+      "type": "string",
+      "value": "[variables('linvirtualMachineName')]"
+    },
+    "Ignition Gateway SCADA Username": {
+      "type": "string",
+      "value": "[parameters('vmAdminUserName1')]"
+    },
+    "Ignition Gateway SCADA Password": {
+      "type": "string",
+      "value": "[parameters('vmAdminPassword1')]"
+    },
+    "labvm02 Ignition Gateway SCADA Private IP": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName1'))).ipConfigurations[0].properties.privateIPAddress]"
+    },
+    "IPCLine1 DNS Name": {
+      "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName2'))).dnsSettings.fqdn]",
+      "type": "string"
+    },
+    "labvm03 IPCLine1": {
+      "type": "string",
+      "value": "[variables('linvirtualMachineName2')]"
+    },
+    "IPCLine1 Username": {
+      "type": "string",
+      "value": "[parameters('vmAdminUserName1')]"
+    },
+    "IPCLine1 Password": {
+      "type": "string",
+      "value": "[parameters('vmAdminPassword1')]"
+    },
+    "labvm 03 IPCLine1 Private IP": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName2'))).ipConfigurations[0].properties.privateIPAddress]"
+    }
   }
- }
 }
