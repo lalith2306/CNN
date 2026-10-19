@@ -263,7 +263,10 @@
             "diskSizeGB": "[parameters('windiskSizeGB')]"
           },
           "imageReference": {
-            "id": "[parameters('winimageid')]"
+            "publisher": "MicrosoftWindowsServer",
+            "offer": "WindowsServer",
+            "sku": "2022-datacenter-g2",
+            "version": "latest"
           }
         }
       },
@@ -403,6 +406,14 @@
         "hardwareProfile": {
           "vmSize": "[parameters('virtualMachineSize')]"
         },
+        "osProfile": {
+          "computerName": "[variables('linvirtualMachineName')]",
+          "adminUsername": "[parameters('vmAdminUserName1')]",
+          "adminPassword": "[parameters('vmAdminPassword1')]",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": false
+          }
+        },
         "networkProfile": {
           "networkInterfaces": [
             {
@@ -421,7 +432,10 @@
             "diskSizeGB": "[parameters('lindiskSizeGB')]"
           },
           "imageReference": {
-            "id": "[parameters('linimageid')]"
+            "publisher": "Canonical",
+            "offer": "ubuntu-24_04-lts",
+            "sku": "server",
+            "version": "latest"
           }
         }
       },
@@ -529,6 +543,14 @@
             "vTpmEnabled": true
           }
         },
+        "osProfile": {
+          "computerName": "[variables('linvirtualMachineName2')]",
+          "adminUsername": "[parameters('vmAdminUserName1')]",
+          "adminPassword": "[parameters('vmAdminPassword1')]",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": false
+          }
+        },
         "networkProfile": {
           "networkInterfaces": [
             {
@@ -547,7 +569,10 @@
             "diskSizeGB": "[parameters('lindiskSizeGB2')]"
           },
           "imageReference": {
-            "id": "[parameters('linimageid2')]"
+            "publisher": "Canonical",
+            "offer": "ubuntu-24_04-lts",
+            "sku": "server",
+            "version": "latest"
           }
         }
       },
