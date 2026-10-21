@@ -210,7 +210,7 @@
                 "description": "Template ID used for resource tagging"
             }
         },
-        "LabID": {
+        "LaunchId": {
             "type": "string",
             "metadata": {
                 "description": "Lab ID used for resource tagging"
@@ -270,7 +270,7 @@
             "tags": {
                 "TenantID": "[parameters('TenantID')]",
                 "TemplateID": "[parameters('TemplateID')]",
-                "LabID": "[parameters('LabID')]"
+                "LaunchId": "[parameters('LaunchId')]"
             },
             "properties": {
                 "mode": "Incremental",
@@ -290,7 +290,7 @@
             "tags": {
                 "TenantID": "[parameters('TenantID')]",
                 "TemplateID": "[parameters('TemplateID')]",
-                "LabID": "[parameters('LabID')]"
+                "LaunchId": "[parameters('LaunchId')]"
             },
             "dependsOn": [
                 "[variables('networkSecurityGroupName')]"
@@ -321,7 +321,7 @@
             "tags": {
                 "TenantID": "[parameters('TenantID')]",
                 "TemplateID": "[parameters('TemplateID')]",
-                "LabID": "[parameters('LabID')]"
+                "LaunchId": "[parameters('LaunchId')]"
             },
             "properties": {
                 "securityRules": [
@@ -406,7 +406,7 @@
             "tags": {
                 "TenantID": "[parameters('TenantID')]",
                 "TemplateID": "[parameters('TemplateID')]",
-                "LabID": "[parameters('LabID')]"
+                "LaunchId": "[parameters('LaunchId')]"
             },
             "sku": {
                 "name": "[variables('ipAddressSku')]",
@@ -427,7 +427,7 @@
             "tags": {
                 "TenantID": "[parameters('TenantID')]",
                 "TemplateID": "[parameters('TemplateID')]",
-                "LabID": "[parameters('LabID')]"
+                "LaunchId": "[parameters('LaunchId')]"
             },
             "dependsOn": [
                 "[variables('networkSecurityGroupName')]",
@@ -466,7 +466,7 @@
             "tags": {
                 "TenantID": "[parameters('TenantID')]",
                 "TemplateID": "[parameters('TemplateID')]",
-                "LabID": "[parameters('LabID')]"
+                "LaunchId": "[parameters('LaunchId')]"
             },
             "properties": {
                 "hardwareProfile": {
@@ -507,7 +507,7 @@
             "tags": {
                 "TenantID": "[parameters('TenantID')]",
                 "TemplateID": "[parameters('TemplateID')]",
-                "LabID": "[parameters('LabID')]"
+                "LaunchId": "[parameters('LaunchId')]"
             },
             "properties": {
                 "publisher": "Microsoft.Compute",
