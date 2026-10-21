@@ -711,6 +711,18 @@
     "labvm 03 IPCLine1 Private IP": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName2'))).ipConfigurations[0].properties.privateIPAddress]"
+    },
+    "labvm01 PRTG Core Server Public IP": {
+    "type": "string",
+    "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName'))).ipAddress]"
+    },
+    "labvm02 Ignition Gateway SCADA Public IP": {
+    "type": "string",
+    "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName1'))).ipAddress]"
+    },
+    "labvm03 IPCLine1 Public IP": {
+    "type": "string",
+    "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName2'))).ipAddress]"
     }
   }
 }
