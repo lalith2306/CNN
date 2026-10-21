@@ -98,7 +98,7 @@
         "TemplateID": {
             "value": "GET-TEMPLATE-ID"
         },
-        "LabID": {
+        "LaunchId": {
             "value": "GET-ODL-ID"
         }
     }
