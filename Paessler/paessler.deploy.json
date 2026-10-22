@@ -656,7 +656,7 @@
       "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName'))).dnsSettings.fqdn]",
       "type": "string"
     },
-    "labvm01 PRTG Core Server": {
+    "PRTG-Core-Server": {
       "type": "string",
       "value": "[variables('winvirtualMachineName')]"
     },
@@ -668,7 +668,7 @@
       "type": "string",
       "value": "[parameters('resetUserPassword')]"
     },
-    "labvm01 PRTG Core Server Private IP": {
+    "PRTG-Core-Server Private IP": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))).ipConfigurations[0].properties.privateIPAddress]"
     },
@@ -676,7 +676,7 @@
       "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName1'))).dnsSettings.fqdn]",
       "type": "string"
     },
-    "labvm02 Ignition Gateway SCADA": {
+    "Ignition-Gateway-SCADA": {
       "type": "string",
       "value": "[variables('linvirtualMachineName')]"
     },
@@ -688,7 +688,7 @@
       "type": "string",
       "value": "[parameters('vmAdminPassword1')]"
     },
-    "labvm02 Ignition Gateway SCADA Private IP": {
+    "Ignition-Gateway-SCADA Private IP": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName1'))).ipConfigurations[0].properties.privateIPAddress]"
     },
@@ -696,7 +696,7 @@
       "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName2'))).dnsSettings.fqdn]",
       "type": "string"
     },
-    "labvm03 IPCLine1": {
+    "IPCLine1": {
       "type": "string",
       "value": "[variables('linvirtualMachineName2')]"
     },
@@ -708,19 +708,19 @@
       "type": "string",
       "value": "[parameters('vmAdminPassword1')]"
     },
-    "labvm 03 IPCLine1 Private IP": {
+    "IPCLine1 Private IP": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName2'))).ipConfigurations[0].properties.privateIPAddress]"
     },
-    "labvm01 PRTG Core Server Public IP": {
+    "PRTG-Core-Server Public IP": {
     "type": "string",
     "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName'))).ipAddress]"
     },
-    "labvm02 Ignition Gateway SCADA Public IP": {
+    "Ignition-Gateway-SCADA Public IP": {
     "type": "string",
     "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName1'))).ipAddress]"
     },
-    "labvm03 IPCLine1 Public IP": {
+    "IPCLine1 Public IP": {
     "type": "string",
     "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName2'))).ipAddress]"
     }
