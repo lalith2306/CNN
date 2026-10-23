@@ -684,7 +684,7 @@
       "type": "string",
       "value": "[parameters('resetUserPassword')]"
     },
-    "PRTG Core Server Private IP": {
+    "PRTG-Core-Server Private IP": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))).ipConfigurations[0].properties.privateIPAddress]"
     },
@@ -700,7 +700,7 @@
       "type": "string",
       "value": "[parameters('resetUserPassword')]"
     },
-    "PRTG Remote Probe Private IP": {
+    "PRTG-Remote-Probe Private IP": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName1'))).ipConfigurations[0].properties.privateIPAddress]"
     },
@@ -716,19 +716,19 @@
       "type": "string",
       "value": "[parameters('vmAdminPassword1')]"
     },
-    "PRTG Multi-Platform-Probe Private IP": {
+    "PRTG-Multi-Platform-Probe Private IP": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName2'))).ipConfigurations[0].properties.privateIPAddress]"
     },
-    "PRTG Core Server": {
+    "PRTG-Core-Server": {
       "type": "string",
       "value": "[variables('winvirtualMachineName')]"
     },
-    "PRTG Remote Probe": {
+    "PRTG-Remote-Probe": {
       "type": "string",
       "value": "[variables('probevirtualMachineName')]"
     },
-    "PRTG Multi-Platform-Probe": {
+    "PRTG-Multi-Platform-Probe": {
       "type": "string",
       "value": "[variables('linvirtualMachineName2')]"
     }
