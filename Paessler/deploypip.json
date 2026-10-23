@@ -722,15 +722,15 @@
     },
     "PRTG Core Server": {
       "type": "string",
-      "value": "[variables('virtualMachineName')]"
+      "value": "[variables('winvirtualMachineName')]"
     },
     "PRTG Remote Probe": {
       "type": "string",
-      "value": "[variables('virtualMachineName1')]"
+      "value": "[variables('probevirtualMachineName')]"
     },
     "PRTG Multi-Platform-Probe": {
       "type": "string",
-      "value": "[variables('virtualMachineName2')]"
+      "value": "[variables('linvirtualMachineName2')]"
     }
   }
 }
