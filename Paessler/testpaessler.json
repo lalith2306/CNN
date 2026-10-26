@@ -240,11 +240,11 @@
       "type": "String",
       "value": "[parameters('resetUserPassword')]"
     },
-    "PRTG Core Server": {
+    "PRTG-Core-Server": {
       "type": "string",
       "value": "[variables('vmName')]"
     },
-    "PRTG Core Server Private IP": {
+    "PRTG-Core-Server Private IP": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))).ipConfigurations[0].properties.privateIPAddress]"
     }
