@@ -8,13 +8,27 @@
     "winimageid": {
       "type": "string"
     },
-    "linimageid": {
-      "type": "string"
+    "winimageid2": {
+      "type": "string",
+      "metadata": {
+        "description": "Image reference for the PRTG Remote Probe VM (generalized WINDOWS image). If the image is TrustedLaunch, set variable probeTrustedLaunch to true."
+      }
     },
     "linimageid2": {
       "type": "string",
       "metadata": {
-        "description": "Image reference for IPCLine1 VM (sharedimagegallary/images/IPCLine1VM-image-OT-lab). NOTE: this is a SPECIALIZED image, so no osProfile is supplied for this VM - login credentials are whatever was baked into the image when it was captured."
+        "description": "Image reference for PRTG Multi-Platform-Probe VM (sharedimagegallary/images/L2_prtg_mpp). Set mppImageOsState to match the image definition's OS state."
+      }
+    },
+    "mppImageOsState": {
+      "type": "string",
+      "defaultValue": "Generalized",
+      "allowedValues": [
+        "Specialized",
+        "Generalized"
+      ],
+      "metadata": {
+        "description": "OS state of the linimageid2 image definition. Specialized = no osProfile is sent (login comes from the image). Generalized = osProfile is sent with vmAdminUserName1 / vmAdminPassword."
       }
     },
     "publicIpAddressType": {
@@ -23,7 +37,7 @@
     "windiskSizeGB": {
       "type": "string"
     },
-    "lindiskSizeGB": {
+    "windiskSizeGB2": {
       "type": "string"
     },
     "lindiskSizeGB2": {
@@ -47,13 +61,13 @@
     "vmAdminUserName2": {
       "type": "string",
       "metadata": {
-        "description": "Not applied to the VM (specialized image) - kept only in case you want to display it in outputs for reference."
+        "description": "Not used - the Multi-Platform-Probe admin user is vmAdminUserName1."
       }
     },
     "vmAdminPassword2": {
       "type": "securestring",
       "metadata": {
-        "description": "Not applied to the VM (specialized image) - kept only in case you want to display it in outputs for reference."
+        "description": "Not used - kept only so existing parameter files do not fail."
       }
     },
     "trainerUserName": {
@@ -115,19 +129,42 @@
     "publicIpAddressName": "[concat(variables('winvirtualMachineName'), '-pip')]",
     "publicIpAddressDNSName": "[concat('prtgdns',parameters('DeploymentID'))]",
     "osdiskname": "[concat('PRTGwin-OSDisk-', parameters('DeploymentID'))]",
-    "linvirtualMachineName": "Ignition-Gateway-SCADA",
-    "networkInterfaceName1": "[concat(variables('linvirtualMachineName'), '-nic')]",
-    "networkSecurityGroupName1": "[concat(variables('linvirtualMachineName'), '-nsg')]",
-    "publicIpAddressName1": "[concat(variables('linvirtualMachineName'), '-pip')]",
-    "publicIpAddressDNSName1": "[concat('ubuntudns',parameters('DeploymentID'))]",
-    "osdiskname1": "[concat('Ubuntu-OSDisk-', parameters('DeploymentID'))]",
-    "linvirtualMachineName2": "IPCLine1",
+    "probevirtualMachineName": "PRTG-Remote-Probe",
+    "probeComputerName": "[toUpper(take(concat('PROBE', parameters('DeploymentID')), 15))]",
+    "networkInterfaceName1": "[concat(variables('probevirtualMachineName'), '-nic')]",
+    "networkInterfaceNameHv": "[concat(variables('probevirtualMachineName'), '-hyperv-nic')]",
+    "networkSecurityGroupName1": "[concat(variables('probevirtualMachineName'), '-nsg')]",
+    "publicIpAddressName1": "[concat(variables('probevirtualMachineName'), '-pip')]",
+    "publicIpAddressDNSName1": "[concat('prtgprobedns',parameters('DeploymentID'))]",
+    "osdiskname1": "[concat('PRTGProbe-OSDisk-', parameters('DeploymentID'))]",
+    "linvirtualMachineName2": "PRTG-Multi-Platform-Probe",
     "networkInterfaceName2": "[concat(variables('linvirtualMachineName2'), '-nic')]",
     "networkSecurityGroupName2": "[concat(variables('linvirtualMachineName2'), '-nsg')]",
     "publicIpAddressName2": "[concat(variables('linvirtualMachineName2'), '-pip')]",
-    "publicIpAddressDNSName2": "[concat('ipclinedns',parameters('DeploymentID'))]",
-    "osdiskname2": "[concat('IPCLine1-OSDisk-', parameters('DeploymentID'))]",
-    "Enable-CloudLabsEmbeddedShadow": "[concat(' -vmAdminUserName ', parameters('vmAdminUserName') , ' -trainerUserName ', parameters('trainerUserName'), ' -trainerUserPassword ', parameters('trainerUserPassword'))]"
+    "publicIpAddressDNSName2": "[concat('prtgmppdns',parameters('DeploymentID'))]",
+    "osdiskname2": "[concat('PRTGMPP-OSDisk-', parameters('DeploymentID'))]",
+    "Enable-CloudLabsEmbeddedShadow": "[concat(' -vmAdminUserName ', parameters('vmAdminUserName') , ' -trainerUserName ', parameters('trainerUserName'), ' -trainerUserPassword ', parameters('trainerUserPassword'))]",
+    "mppComputerName": "[variables('mppHostname')]",
+    "mppOsProfile": {
+      "computerName": "[variables('mppComputerName')]",
+      "adminUsername": "[parameters('vmAdminUserName1')]",
+      "adminPassword": "[parameters('vmAdminPassword')]",
+      "linuxConfiguration": {
+        "disablePasswordAuthentication": false,
+        "provisionVMAgent": true
+      }
+    },
+    "mppHostname": "prtg-mpp",
+    "probeTrustedLaunch": false,
+    "trustedLaunchProfile": {
+      "securityType": "TrustedLaunch",
+      "uefiSettings": {
+        "secureBootEnabled": true,
+        "vTpmEnabled": true
+      }
+    },
+    "probeHostname": "prtg-remote-probe",
+    "prepPsscript": "powershell.exe -ExecutionPolicy Unrestricted -Command \"Copy-Item -Path (Get-ChildItem -Recurse -Filter psscript.ps1 | Select-Object -First 1).FullName -Destination .\\run-psscript.ps1 -Force\" & "
   },
   "resources": [
     {
@@ -237,14 +274,14 @@
           "vmSize": "[parameters('virtualMachineSize')]"
         },
         "osProfile": {
-            "computerName": "[variables('winComputerName')]",
-            "adminUsername": "[parameters('vmAdminUserName')]",
-            "adminPassword": "[parameters('vmAdminPassword')]",
-            "windowsConfiguration": {
-                "provisionVMAgent": true,
-                "enableAutomaticUpdates": true
-            }
-        },        
+          "computerName": "[variables('winComputerName')]",
+          "adminUsername": "[parameters('vmAdminUserName')]",
+          "adminPassword": "[parameters('vmAdminPassword')]",
+          "windowsConfiguration": {
+            "provisionVMAgent": true,
+            "enableAutomaticUpdates": true
+          }
+        },
         "networkProfile": {
           "networkInterfaces": [
             {
@@ -287,12 +324,12 @@
         "autoUpgradeMinorVersion": true,
         "settings": {
           "fileUris": [
-            "https://experienceazure.blob.core.windows.net/templates/paessler/Lab3/psscript.ps1",
+            "https://experienceazure.blob.core.windows.net/templates/paessler/L2-Training-with-Paessler-PRTG-3VMs/psscript.ps1",
             "https://experienceazure.blob.core.windows.net/templates/cloudlabs-common/cloudlabs-windows-functions.ps1"
           ]
         },
         "protectedSettings": {
-          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File paessler/Lab3/psscript.ps1', variables('cloudlabsCommon'),variables('Enable-CloudLabsEmbeddedShadow'), ' -resetUserPassword ', parameters('resetUserPassword'))]"
+          "commandToExecute": "[concat(variables('prepPsscript'), 'powershell.exe -ExecutionPolicy Unrestricted -File run-psscript.ps1', variables('cloudlabsCommon'), variables('Enable-CloudLabsEmbeddedShadow'), ' -resetUserPassword ', parameters('resetUserPassword'), ' & exit /b 0')]"
         }
       }
     },
@@ -330,20 +367,6 @@
               "priority": 2000,
               "direction": "Inbound"
             }
-          },
-          {
-            "name": "default-allow-ssh",
-            "properties": {
-              "description": "Allow SSH",
-              "protocol": "Tcp",
-              "sourcePortRange": "*",
-              "destinationPortRange": "22",
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 3000,
-              "direction": "Inbound"
-            }
           }
         ]
       }
@@ -372,7 +395,7 @@
       "properties": {
         "ipConfigurations": [
           {
-            "name": "linvm-pip",
+            "name": "prtgprobevm-pip",
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "subnet": {
@@ -394,8 +417,35 @@
       ]
     },
     {
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('networkInterfaceNameHv')]",
+      "apiVersion": "2023-05-01",
+      "location": "[variables('location')]",
+      "properties": {
+        "enableIPForwarding": true,
+        "enableAcceleratedNetworking": false,
+        "ipConfigurations": [
+          {
+            "name": "hyperv-ipconfig",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              }
+            }
+          }
+        ],
+        "networkSecurityGroup": {
+          "id": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroupName1'))]"
+        }
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkSecurityGroups/', variables('networkSecurityGroupName1'))]"
+      ]
+    },
+    {
       "type": "Microsoft.Compute/virtualMachines",
-      "name": "[variables('linvirtualMachineName')]",
+      "name": "[variables('probevirtualMachineName')]",
       "apiVersion": "2023-03-01",
       "location": "[variables('location')]",
       "tags": {},
@@ -403,10 +453,29 @@
         "hardwareProfile": {
           "vmSize": "[parameters('virtualMachineSize')]"
         },
+        "osProfile": {
+          "computerName": "[variables('probeComputerName')]",
+          "adminUsername": "[parameters('vmAdminUserName')]",
+          "adminPassword": "[parameters('vmAdminPassword')]",
+          "windowsConfiguration": {
+            "provisionVMAgent": true,
+            "enableAutomaticUpdates": true
+          }
+        },
+        "securityProfile": "[if(variables('probeTrustedLaunch'), variables('trustedLaunchProfile'), json('null'))]",
         "networkProfile": {
           "networkInterfaces": [
             {
-              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName1'))]"
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName1'))]",
+              "properties": {
+                "primary": true
+              }
+            },
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceNameHv'))]",
+              "properties": {
+                "primary": false
+              }
             }
           ]
         },
@@ -418,16 +487,42 @@
             "managedDisk": {
               "storageAccountType": "[parameters('diskType')]"
             },
-            "diskSizeGB": "[parameters('lindiskSizeGB')]"
+            "diskSizeGB": "[parameters('windiskSizeGB2')]"
           },
           "imageReference": {
-            "id": "[parameters('linimageid')]"
+            "id": "[parameters('winimageid2')]"
           }
         }
       },
       "dependsOn": [
-        "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName1'))]"
+        "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName1'))]",
+        "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceNameHv'))]"
       ]
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "apiVersion": "2015-06-15",
+      "name": "[concat(variables('probevirtualMachineName'), '/', 'winExtension')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('probevirtualMachineName'))]"
+      ],
+      "tags": {},
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.10",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "https://experienceazure.blob.core.windows.net/templates/paessler/L2-Training-with-Paessler-PRTG-3VMs/psscript.ps1",
+            "https://experienceazure.blob.core.windows.net/templates/cloudlabs-common/cloudlabs-windows-functions.ps1"
+          ]
+        },
+        "protectedSettings": {
+          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -Command \"Rename-Computer -NewName ''', variables('probeHostname'), ''' -Force -WarningAction SilentlyContinue\" & ', variables('prepPsscript'), 'powershell.exe -ExecutionPolicy Unrestricted -File run-psscript.ps1', variables('cloudlabsCommon'), variables('Enable-CloudLabsEmbeddedShadow'), ' -resetUserPassword ', parameters('resetUserPassword'), ' & exit /b 0')]"
+        }
+      }
     },
     {
       "type": "Microsoft.Network/networkSecurityGroups",
@@ -491,7 +586,7 @@
       "properties": {
         "ipConfigurations": [
           {
-            "name": "ipclinevm-pip",
+            "name": "prtgmppvm-pip",
             "properties": {
               "privateIPAllocationMethod": "Dynamic",
               "subnet": {
@@ -522,6 +617,7 @@
         "hardwareProfile": {
           "vmSize": "[parameters('virtualMachineSize')]"
         },
+        "osProfile": "[if(equals(parameters('mppImageOsState'), 'Generalized'), variables('mppOsProfile'), json('null'))]",
         "securityProfile": {
           "securityType": "TrustedLaunch",
           "uefiSettings": {
@@ -558,7 +654,7 @@
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "apiVersion": "2015-06-15",
-      "name": "[concat(variables('linvirtualMachineName2'), '/', 'ipclineProvision')]",
+      "name": "[concat(variables('linvirtualMachineName2'), '/', 'mppProvision')]",
       "location": "[variables('location')]",
       "dependsOn": [
         "[concat('Microsoft.Compute/virtualMachines/', variables('linvirtualMachineName2'))]"
@@ -570,59 +666,59 @@
         "autoUpgradeMinorVersion": true,
         "settings": {},
         "protectedSettings": {
-          "commandToExecute": "sudo apt-get update && sudo apt-get install -y net-tools curl"
+          "commandToExecute": "[concat('if id -u ', parameters('vmAdminUserName1'), ' >/dev/null 2>&1; then echo \"', parameters('vmAdminUserName1'), ':', parameters('vmAdminPassword1'), '\" | chpasswd; fi; OLD=$(hostname); hostnamectl set-hostname ', variables('mppHostname'), '; sed -i \"s/$OLD/', variables('mppHostname'), '/g\" /etc/hosts; grep -q \"^127.0.1.1\" /etc/hosts || echo \"127.0.1.1 ', variables('mppHostname'), '\" >> /etc/hosts; mkdir -p /etc/cloud/cloud.cfg.d; echo \"preserve_hostname: true\" > /etc/cloud/cloud.cfg.d/99-preserve-hostname.cfg; apt-get update && apt-get install -y net-tools curl; exit 0')]"
         }
       }
     }
   ],
   "outputs": {
-  "PRTG Core Server DNS Name": {
-    "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName'))).dnsSettings.fqdn]",
-    "type": "string"
-  },
-  "PRTG Core Server Username": {
-    "type": "string",
-    "value": "[parameters('vmAdminUserName')]"
-  },
-  "PRTG Core Server Password": {
-    "type": "string",
-    "value": "[parameters('resetUserPassword')]"
-  },
-  "PRTG-Core-Server Private IP": {
-    "type": "string",
-    "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))).ipConfigurations[0].properties.privateIPAddress]"
-  },
-  "Ignition Gateway SCADA DNS Name": {
-    "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName1'))).dnsSettings.fqdn]",
-    "type": "string"
-  },
-  "Ignition Gateway SCADA Username": {
-    "type": "string",
-    "value": "[parameters('vmAdminUserName1')]"
-  },
-  "Ignition Gateway SCADA Password": {
-    "type": "string",
-    "value": "[parameters('vmAdminPassword1')]"
-  },
-  "Ignition-Gateway-SCADA Private IP": {
-    "type": "string",
-    "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName1'))).ipConfigurations[0].properties.privateIPAddress]"
-  },
-  "IPCLine1 DNS Name": {
-    "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName2'))).dnsSettings.fqdn]",
-    "type": "string"
-  },
-  "IPCLine1 Username": {
-    "type": "string",
-    "value": "[parameters('vmAdminUserName1')]"
-  },
-  "IPCLine1 Password": {
-    "type": "string",
-    "value": "[parameters('vmAdminPassword1')]"
-  },
-  "IPCLine1 Private IP": {
-    "type": "string",
-    "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName2'))).ipConfigurations[0].properties.privateIPAddress]"
+    "PRTG Core Server DNS Name": {
+      "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName'))).dnsSettings.fqdn]",
+      "type": "string"
+    },
+    "PRTG Core Server Username": {
+      "type": "string",
+      "value": "[parameters('vmAdminUserName')]"
+    },
+    "PRTG Core Server Password": {
+      "type": "string",
+      "value": "[parameters('resetUserPassword')]"
+    },
+    "PRTG-Core-Server Private IP": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))).ipConfigurations[0].properties.privateIPAddress]"
+    },
+    "PRTG Remote Probe DNS Name": {
+      "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName1'))).dnsSettings.fqdn]",
+      "type": "string"
+    },
+    "PRTG Remote Probe Username": {
+      "type": "string",
+      "value": "[parameters('vmAdminUserName')]"
+    },
+    "PRTG Remote Probe Password": {
+      "type": "string",
+      "value": "[parameters('resetUserPassword')]"
+    },
+    "PRTG-Remote-Probe Private IP": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName1'))).ipConfigurations[0].properties.privateIPAddress]"
+    },
+    "PRTG Multi-Platform-Probe DNS Name": {
+      "value": "[reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName2'))).dnsSettings.fqdn]",
+      "type": "string"
+    },
+    "PRTG Multi-Platform-Probe Username": {
+      "type": "string",
+      "value": "[parameters('vmAdminUserName1')]"
+    },
+    "PRTG Multi-Platform-Probe Password": {
+      "type": "string",
+      "value": "[parameters('vmAdminPassword1')]"
+    },
+    "PRTG-Multi-Platform-Probe Private IP": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName2'))).ipConfigurations[0].properties.privateIPAddress]"
+    }
   }
- }
 }
