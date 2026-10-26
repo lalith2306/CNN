@@ -51,7 +51,7 @@
     "subnetRef": "[concat('/subscriptions/', subscription().subscriptionId,'/resourceGroups/paessler-prod-vnet/providers/Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'), '/subnets/', variables('subnetName'))]",
     "virtualMachineSize": "Standard_D4as_v5",
     "virtualNetworkName": "[concat('paesslerLab-vNet-', variables('location'))]",
-    "vmName": "[concat('prtgcoreserver-',parameters('DeploymentID'))]",
+    "vmName": "PRTG-Core-Server",
     "location": "[resourceGroup().location]",
     "osdiskname": "[concat('PRTGwin-OSDisk-', parameters('DeploymentID'))]",
     "diskType": "StandardSSD_LRS",
