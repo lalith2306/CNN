@@ -618,7 +618,7 @@
             {
                 "name": "allow-rdp-from-internet",
                 "properties": {
-                    "description": "_ADVTECH-ADD. RDP arriving through the shared LB NAT slot (LB preserves the client's public IP, so source = Internet).",
+                    "description": "RDP via shared LB port slot (client IP preserved)",
                     "protocol": "Tcp",
                     "sourcePortRange": "*",
                     "destinationPortRange": "3389",
@@ -632,7 +632,7 @@
             {
                 "name": "deny-lab-to-lab",
                 "properties": {
-                    "description": "_ADVTECH-ADD. All labs now share one VNet; block VM-to-VM traffic so students cannot reach each other's VMs (replaces the isolation that per-lab VNets used to give).",
+                    "description": "Block lab-to-lab traffic in the shared VNet",
                     "protocol": "*",
                     "sourcePortRange": "*",
                     "destinationPortRange": "*",
