@@ -1,0 +1,1542 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "vmNamePefix": {
+            "type": "string",
+            "defaultValue": "LabVM",
+            "metadata": {
+                "description": "The name of your Virtual Machine."
+            },
+            "minLength": 4
+        },
+        "virtualMachineSize": {
+            "type": "string",
+            "metadata": {
+                "description": "Provide Azure VM SKU based on your requirements"
+            }
+        },
+        "vmImageType": {
+            "type": "string",
+            "metadata": {
+                "description": "This parameter determines the type of VM image used for the VM instance that is, marketplace or custom"
+            }
+        },
+        "vmCustomImageOsState": {
+            "type": "string",
+            "metadata": {
+                "description": "This parameter determines the state of the custom image that is, generalized or specialized"
+            }
+        },
+        "vmCustomImageResourceID": {
+            "type": "string",
+            "metadata": {
+                "description": "This parameter is required if the vmImageType is customImage type "
+            }
+        },
+        "vmMarketplaceImageSku": {
+            "type": "string",
+            "metadata": {
+                "description": "provide the Azure Marketplace Image details or resource ID of the custom Image"
+            }
+        },
+        "vmMarketplaceImageOffer": {
+            "type": "string",
+            "metadata": {
+                "description": "Provide a vm image offer of your lab instance"
+            }
+        },
+        "vmMarketplaceImagePublisher": {
+            "type": "string",
+            "metadata": {
+                "description": "Provide a vm image publisher of your lab instance"
+            }
+        },
+        "imagePlanRequired": {
+            "type": "string",
+            "metadata": {
+                "description": "Is a Marketplace Image plan required"
+            }
+        },
+        "imagePlanName": {
+            "defaultValue": "PLAN_NAME",
+            "type": "string",
+            "metadata": {
+                "description": "Provide a Marketplace Image plan name if exists"
+            }
+        },
+        "imagePlanPublisher": {
+            "type": "string",
+            "metadata": {
+                "description": "Provide a Marketplace Image plan publisher name if exists"
+            }
+        },
+        "imagePlanProduct": {
+            "defaultValue": "PLAN_PRODUCT",
+            "type": "string",
+            "metadata": {
+                "description": "Provide a Marketplace Image plan product name if exists"
+            }
+        },
+        "useSamePasswordOrNot": {
+            "type": "string",
+            "metadata": {
+                "description": "Provide yes if you want to use same password for all users else no"
+            }
+        },
+        "genAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Generates a unique strong password for the administrator account of your lab instance"
+            }
+        },
+        "vmAdminUserName": {
+            "type": "string",
+            "metadata": {
+                "description": "Provide name for administrator account of your lab"
+            }
+        },
+        "vmAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Create a strong password for the administrator account of your lab instance"
+            }
+        },
+        "virtualNetworkNewOrExisting": {
+            "defaultValue": "new",
+            "allowedValues": [
+                "new",
+                "existing"
+            ],
+            "type": "string",
+            "metadata": {
+                "description": "This parameter is determines whether or not a new virtual network should be provisioned. New network will be provisioned only if Advance networking is not enabled. _ADVTECH-NOTE: when publicIpMode='shared' the template ALWAYS uses the existing VNet (treated as 'existing' even if 'new' is passed), because all NICs behind one load balancer must live in one VNet."
+            }
+        },
+        "existingVirtualNetworkName": {
+            "defaultValue": "VirtualNetwork",
+            "type": "string",
+            "metadata": {
+                "description": "Provide name of the existing network"
+            }
+        },
+        "existingVnetSubnetName": {
+            "defaultValue": "default",
+            "type": "string",
+            "metadata": {
+                "description": "Provide name of the subnet in the existing network to be used"
+            }
+        },
+        "existingVnetResourceGroupName": {
+            "defaultValue": "[resourceGroup().name]",
+            "type": "string",
+            "metadata": {
+                "description": "Provide name of the resource group for the existing virtual network"
+            }
+        },
+        "vmOSDiskSizeGB": {
+            "defaultValue": "128",
+            "type": "string",
+            "metadata": {
+                "description": "Determines the size of the OS disk attached to the VM"
+            }
+        },
+        "vmOsDiskType": {
+            "type": "string",
+            "metadata": {
+                "description": "Determines the type of OS disk for the virtual Machine"
+            }
+        },
+        "provisionNonAdminUser": {
+            "defaultValue": "no",
+            "type": "string",
+            "metadata": {
+                "description": "Determines whether or not non admin users should be provisioned."
+            }
+        },
+        "vmNonAdminUserName": {
+            "type": "string",
+            "metadata": {
+                "description": "Provide name for non-administrator account for lab instance"
+            }
+        },
+        "vmNonAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Provide a strong password for the non-administrator account of your lab instance"
+            },
+            "minLength": 4
+        },
+        "genNonAdminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Generates a unique strong password for the non-administrator account of your lab instance"
+            }
+        },
+        "DeploymentID": {
+            "type": "string",
+            "metadata": {
+                "description": "Unqiue numeric ID of the indiviual user/student instance"
+            }
+        },
+        "trainerUserName": {
+            "type": "string",
+            "metadata": {
+                "description": "This parameter is required for trainer shadow functionality"
+            }
+        },
+        "trainerUserPassword": {
+            "type": "string",
+            "metadata": {
+                "description": "This parameter is required for trainer shadow functionality"
+            }
+        },
+        "vmSecurityType": {
+            "type": "string",
+            "metadata": {
+                "description": "This parameter is required for security type"
+            }
+        },
+        "ephemeralOSDisk": {
+            "defaultValue": "no",
+            "allowedValues": [
+                "yes",
+                "no"
+            ],
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD. yes = stateless ephemeral OS disk (required for the ephemeral-FSLogix lab). no = stock CloudLabs managed OS disk (default, unchanged behaviour)."
+            }
+        },
+        "ephemeralOSDiskPlacement": {
+            "defaultValue": "ResourceDisk",
+            "allowedValues": [
+                "ResourceDisk",
+                "CacheDisk",
+                "NvmeDisk"
+            ],
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD. Where the ephemeral OS disk lives. D-series v5 = ResourceDisk, D-series v6 = NvmeDisk. MUST match the chosen SKU. Ignored when ephemeralOSDisk='no'."
+            }
+        },
+        "diskControllerType": {
+            "defaultValue": "",
+            "allowedValues": [
+                "",
+                "SCSI",
+                "NVMe"
+            ],
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD. VM disk controller. Empty = Azure default for the SKU (matches stock CL). v5 = SCSI, v6 = NVMe. The gallery image MUST declare the controller in its features."
+            }
+        },
+        "runCloudLabsExtension": {
+            "defaultValue": "yes",
+            "allowedValues": [
+                "yes",
+                "no"
+            ],
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD. yes = run the CloudLabs CustomScriptExtension (user provisioning + trainer shadow), default/unchanged. no = skip it for raw image-boot validation."
+            }
+        },
+        "userData": {
+            "defaultValue": "",
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD. OPTIONAL OVERRIDE. Base64-encoded JSON read at boot by cl-bootstrap-portable.ps1 (keys: shareUnc, profilesAcctId). Leave EMPTY: when keystoneStorageAccountName is set, the template DERIVES this automatically from the keystone params. Non-empty = used verbatim (override). Empty + no keystone = stock CL (no userData)."
+            }
+        },
+        "dataDiskFromImage": {
+            "defaultValue": "no",
+            "allowedValues": [
+                "yes",
+                "no"
+            ],
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD. yes = ensure a DID-anchored managed data disk 'DataDisk-<DeploymentID>' exists and attach it (deleteOption=Detach, so it survives VM delete). First deploy creates it BLANK (dataDiskSizeGB) and cl-bootstrap-portable.ps1 initializes + formats + mounts it as E: at first boot. Every delete+recreate of the same DeploymentID re-attaches the SAME disk with data preserved (idempotent PUT: identical creationData = no-op). no = no data disk (stock CL)."
+            }
+        },
+        "dataDiskSizeGB": {
+            "defaultValue": "32",
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD. Size (GiB) of the BLANK data disk attached when dataDiskFromImage=yes. The virgin disk is initialized/formatted/mounted as E: by the image bootstrap at first boot. 32 keeps managed-disk cost minimal (the OS is ephemeral/free); set 64/128 for more nested-guest capacity."
+            }
+        },
+        "keystoneStorageAccountName": {
+            "defaultValue": "",
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD. Name of the Keystone (Part 1) Premium FileStorage account that holds the FSLogix profiles share. Non-empty = this is an ephemeral-FSLogix lab: the template creates a DID-anchored UAMI 'id-<DeploymentID>', grants it Key Operator on THIS account, and wires a per-lab Private Endpoint + private DNS to it (unless keystonePrivateEndpointMode='preProvisioned'). Empty = stock CL (no identity, no PE)."
+            }
+        },
+        "keystoneStorageResourceGroup": {
+            "defaultValue": "",
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD. Resource group of the Keystone storage account (may differ from the lab RG). Used to scope the cross-RG role assignment and to build the storage resource ID for the Private Endpoint."
+            }
+        },
+        "keystoneStorageSubscriptionId": {
+            "defaultValue": "[subscription().subscriptionId]",
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD. Subscription of the Keystone storage account. Defaults to the lab subscription; set explicitly for cross-subscription Keystone storage."
+            }
+        },
+        "keyOperatorRoleId": {
+            "defaultValue": "81a9662b-bebf-436f-a333-f67b29880f12",
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD. GUID of the built-in 'Storage Account Key Operator Service Role'. The DID-anchored UAMI needs this on the Keystone Files account so the in-guest bootstrap can listKeys for the cmdkey SMB mount."
+            }
+        },
+        "shareName": {
+            "defaultValue": "profiles",
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD. Name of the FSLogix profiles SMB share on the Keystone Files account. Used to derive the userData shareUnc."
+            }
+        },
+        "keystonePrivateEndpointMode": {
+            "defaultValue": "perLab",
+            "allowedValues": [
+                "perLab",
+                "preProvisioned"
+            ],
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD (shared IP). perLab = current behaviour: every lab deploys its own Private Endpoint + private DNS zone/link (correct when each lab has its OWN VNet). preProvisioned = skip the per-lab 'wire-storage' deployment because the shared VNet already has ONE Keystone PE + DNS (created by shared-ingress.json). Use preProvisioned with publicIpMode='shared': otherwise every launch re-PUTs the same PE/zone in the shared VNet and concurrent launches conflict."
+            }
+        },
+        "publicIpMode": {
+            "defaultValue": "dedicated",
+            "allowedValues": [
+                "dedicated",
+                "shared"
+            ],
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD (shared IP). dedicated = stock CL: one Standard public IP per lab VM (default, unchanged behaviour). shared = NO per-lab public IP. The lab NIC claims one free RDP NAT slot on the shared ingress load balancer (shared-ingress.json), so the VM is reached at <shared FQDN>:<slot port>; outbound goes through the shared subnet's NAT Gateway. Requires virtualNetworkNewOrExisting='existing' pointing at the shared ingress VNet/subnet."
+            }
+        },
+        "deletePublicIpWithVm": {
+            "defaultValue": "no",
+            "allowedValues": [
+                "no",
+                "yes"
+            ],
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD (dedicated IP only). yes = when the platform deletes the VM (ephemeral stop), its NIC and public IP are deleted with it, so the public IP is only billed while the VM exists. The next start recreates them with the SAME DNS name (label is derived from the lab resource group). no = stock CL: NIC and public IP are kept (public IP billed 24/7). Ignored when publicIpMode='shared'."
+            }
+        },
+        "sharedIngressResourceGroup": {
+            "defaultValue": "",
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD (shared IP). Resource group holding the shared load balancer + shared RDP public IP. EMPTY (default) = the existing VNet's resource group (existingVnetResourceGroupName), i.e. shared-ingress.json was deployed into the VNet RG. Must be in the SAME subscription and region as the per-lab resource groups."
+            }
+        },
+        "sharedLoadBalancerName": {
+            "defaultValue": "lb-labshared",
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD (shared IP). Name of the shared Standard load balancer that holds the RDP NAT slot pool."
+            }
+        },
+        "sharedPublicIpName": {
+            "defaultValue": "pip-labshared-rdp",
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD (shared IP). Name of the shared RDP public IP (its FQDN is returned as the 'DNS Name' host)."
+            }
+        },
+        "sharedRdpRulePrefix": {
+            "defaultValue": "rdp-",
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD (shared IP). Name prefix of the slot NAT rules on the shared LB. Must match rdpRulePrefix in shared-ingress.json."
+            }
+        },
+        "sharedPortAllocation": {
+            "defaultValue": "auto",
+            "allowedValues": [
+                "auto",
+                "deterministic"
+            ],
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD (shared IP). auto = read the LB at deploy time; if this lab's NIC already owns a slot (delete+recreate of the same DeploymentID) reuse it, otherwise take a FREE slot (offset by DeploymentID so simultaneous launches spread out). deterministic = slot = DeploymentID mod poolSize (no LB read; only safe if live DeploymentIDs are close together, otherwise two labs can land on the same slot and the second launch fails)."
+            }
+        },
+        "sharedRdpSlotOverride": {
+            "defaultValue": -1,
+            "type": "int",
+            "metadata": {
+                "description": "_ADVTECH-ADD (shared IP). Ops/testing only. >= 0 forces this slot index (0-based, sorted by port). -1 = use sharedPortAllocation."
+            }
+        },
+        "dnsNameOutputFormat": {
+            "defaultValue": "hostAndPort",
+            "allowedValues": [
+                "hostAndPort",
+                "hostOnly"
+            ],
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD (shared IP). How the 'DNS Name' output is returned in shared mode. hostAndPort = 'labrdp-xxxx.<region>.cloudapp.azure.com:50123' (works when the portal builds an RDP file / mstsc full address from it). hostOnly = FQDN only; the port is then only in the 'RDP Port' output. Ignored in dedicated mode."
+            }
+        },
+        "sharedIngressBootstrap": {
+            "defaultValue": "auto",
+            "allowedValues": [
+                "auto",
+                "always",
+                "never"
+            ],
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD (shared IP). auto (recommended, set once and leave) = every launch checks the VNet resource group for the tag 'shared-ingress-<sharedLoadBalancerName>'. If it is missing (very first launch), this launch creates the shared ingress there: shared RDP public IP, load balancer with the RDP port-slot pool, NAT Gateway attached to the lab subnet (existing subnet settings kept), the Keystone private endpoint/DNS (when keystonePrivateEndpointMode='preProvisioned'), and then writes the tag. Every later launch sees the tag and creates nothing shared. always = rebuild every launch (testing only; simultaneous launches would conflict). never = shared ingress was created some other way. Make the very first launch a single test launch, not a whole class at once."
+            }
+        },
+        "sharedRdpSlotCount": {
+            "defaultValue": 800,
+            "minValue": 1,
+            "maxValue": 800,
+            "type": "int",
+            "metadata": {
+                "description": "_ADVTECH-ADD (shared IP, used only when the shared ingress is created). Number of RDP port slots = max lab VMs that can exist at once (running or stopped). 800 is the maximum and costs nothing extra (inbound NAT rules are free); the subnet's free IPs are the real limit."
+            }
+        },
+        "sharedRdpFrontendPortStart": {
+            "defaultValue": 50000,
+            "minValue": 1024,
+            "maxValue": 64000,
+            "type": "int",
+            "metadata": {
+                "description": "_ADVTECH-ADD (shared IP, bootstrap only). Public port of slot 0; slot n = start + n."
+            }
+        },
+        "sharedPublicDnsLabel": {
+            "defaultValue": "",
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD (shared IP, bootstrap only). DNS label of the shared RDP public IP. Empty = 'labrdp-<unique>' derived from the VNet resource group."
+            }
+        },
+        "sharedNatGatewayName": {
+            "defaultValue": "ng-labshared",
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD (shared IP, bootstrap only). NAT Gateway giving the lab subnet outbound internet now that VMs have no public IP."
+            }
+        },
+        "sharedCreateNatGateway": {
+            "defaultValue": "yes",
+            "allowedValues": [
+                "yes",
+                "no"
+            ],
+            "type": "string",
+            "metadata": {
+                "description": "_ADVTECH-ADD (shared IP, used only when the shared ingress is created). yes = create the NAT Gateway and attach it to the lab subnet (the subnet's current settings such as NSG, route table, service endpoints and delegations are read and kept). no = the subnet already has outbound internet (existing NAT Gateway or firewall route); the subnet is left untouched."
+            }
+        }
+    },
+    "variables": {
+        "uamiName": "[concat('id-', parameters('DeploymentID'))]",
+        "isFsLogixLab": "[not(empty(parameters('keystoneStorageAccountName')))]",
+        "isSharedIp": "[equals(parameters('publicIpMode'), 'shared')]",
+        "vmNetworkDeleteOption": "[if(and(not(variables('isSharedIp')), equals(parameters('deletePublicIpWithVm'), 'yes')), 'Delete', 'Detach')]",
+        "runSharedIngress": "[and(variables('isSharedIp'), not(equals(parameters('sharedIngressBootstrap'), 'never')))]",
+        "bootstrapDeploymentName": "[concat('shared-ingress-', parameters('DeploymentID'))]",
+        "sharedDnsLabel": "[if(empty(parameters('sharedPublicDnsLabel')), concat('labrdp-', uniqueString(subscription().subscriptionId, variables('sharedIngressRg'))), parameters('sharedPublicDnsLabel'))]",
+        "perLabStorageWiring": "[and(variables('isFsLogixLab'), equals(parameters('keystonePrivateEndpointMode'), 'perLab'))]",
+        "useExistingVnet": "[or(equals(parameters('virtualNetworkNewOrExisting'), 'existing'), variables('isSharedIp'))]",
+        "sharedIngressRg": "[if(empty(parameters('sharedIngressResourceGroup')), parameters('existingVnetResourceGroupName'), parameters('sharedIngressResourceGroup'))]",
+        "sharedLbId": "[if(variables('isSharedIp'), resourceId(variables('sharedIngressRg'), 'Microsoft.Network/loadBalancers', parameters('sharedLoadBalancerName')), '')]",
+        "sharedPipId": "[if(variables('isSharedIp'), resourceId(variables('sharedIngressRg'), 'Microsoft.Network/publicIPAddresses', parameters('sharedPublicIpName')), '')]",
+        "slotDeploymentName": "[concat('rdp-slot-', parameters('DeploymentID'))]",
+        "keystoneFilesAcctId": "[resourceId(parameters('keystoneStorageSubscriptionId'), parameters('keystoneStorageResourceGroup'), 'Microsoft.Storage/storageAccounts', parameters('keystoneStorageAccountName'))]",
+        "fileDnsZoneName": "[format('privatelink.file.{0}', environment().suffixes.storage)]",
+        "labVnetName": "[if(not(variables('useExistingVnet')), variables('newVirtualNetworkName'), parameters('existingVirtualNetworkName'))]",
+        "wiringRg": "[if(not(variables('useExistingVnet')), resourceGroup().name, parameters('existingVnetResourceGroupName'))]",
+        "peName": "[concat('pe-', variables('labVnetName'), '-', parameters('keystoneStorageAccountName'))]",
+        "linkName": "[concat('link-', variables('labVnetName'))]",
+        "vmSubnetId": "[if(not(variables('useExistingVnet')), resourceId('Microsoft.Network/virtualNetworks/subnets', variables('newVirtualNetworkName'), variables('newVnetSubnetName')), resourceId(parameters('existingVnetResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('existingVirtualNetworkName'), parameters('existingVnetSubnetName')))]",
+        "derivedUserData": "[base64(string(createObject('shareUnc', concat('\\\\', parameters('keystoneStorageAccountName'), '.file.', environment().suffixes.storage, '\\', parameters('shareName')), 'profilesAcctId', variables('keystoneFilesAcctId'))))]",
+        "effectiveUserData": "[if(not(equals(parameters('userData'), '')), parameters('userData'), if(variables('isFsLogixLab'), variables('derivedUserData'), ''))]",
+        "uaIdentityObject": {
+            "type": "UserAssigned",
+            "userAssignedIdentities": "[createObject(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uamiName')), createObject())]"
+        },
+        "Enable-CloudLabsEmbeddedShadow": "[concat(' -trainerUserName ', parameters('trainerUserName'), ' -trainerUserPassword ', parameters('trainerUserPassword'))]",
+        "newVirtualNetworkName": "[concat('VirtualNetwork-', parameters('DeploymentID'))]",
+        "newVnetAddressPrefix": "10.0.0.0/16",
+        "newVnetSubnetName": "Subnet",
+        "newVnetSubnetPrefix": "10.0.0.0/24",
+        "labVnetId": "[if(not(variables('useExistingVnet')), resourceId('Microsoft.Network/virtualNetworks', variables('newVirtualNetworkName')), resourceId(parameters('existingVnetResourceGroupName'), 'Microsoft.Network/virtualNetworks', parameters('existingVirtualNetworkName')))]",
+        "networkInterfaceName": "[concat('NIC-', parameters('DeploymentID'))]",
+        "region": "[resourceGroup().location]",
+        "networkSecurityGroupName": "[concat('NSG-', parameters('DeploymentID'))]",
+        "vmName": "[concat(parameters('vmNamePefix'), parameters('DeploymentID'))]",
+        "publicIpAddressName": "[concat('PublicIP-', parameters('DeploymentID'))]",
+        "publicIpAddressDNSName": "[concat('labvmdns', uniqueString(resourceGroup().id))]",
+        "iPAllocationMethod": "Static",
+        "ipAddressSku": "Standard",
+        "iptier": "Regional",
+        "osdiskname": "[concat('labvm-OSDisk-', parameters('DeploymentID'))]",
+        "dataDiskName": "[concat('DataDisk-', parameters('DeploymentID'))]",
+        "vmPasswordAdmin": "[if(and(equals(parameters('useSamePasswordOrNot'), 'no'), equals(parameters('provisionNonAdminUser'), 'no')), parameters('genAdminPassword'), parameters('vmAdminPassword'))]",
+        "vmPasswordNonAdmin": "[if(equals(parameters('useSamePasswordOrNot'), 'yes'), parameters('vmNonAdminPassword'), parameters('genNonAdminPassword'))]",
+        "outputUsername": "[if(equals(parameters('provisionNonAdminUser'), 'no'), parameters('vmAdminUserName'), parameters('vmNonAdminUserName'))]",
+        "outputPassword": "[if(equals(parameters('provisionNonAdminUser'), 'no'), variables('vmPasswordAdmin'), variables('vmPasswordNonAdmin'))]",
+        "marketPlaceImageReference": {
+            "offer": "[parameters('vmMarketplaceImageOffer')]",
+            "publisher": "[parameters('vmMarketplaceImagePublisher')]",
+            "sku": "[parameters('vmMarketplaceImageSku')]",
+            "version": "latest"
+        },
+        "customImageID": {
+            "id": "[parameters('vmCustomImageResourceID')]"
+        },
+        "osProfile": {
+            "computerName": "[variables('vmName')]",
+            "adminUsername": "[parameters('vmAdminUsername')]",
+            "adminPassword": "[variables('vmPasswordAdmin')]"
+        },
+        "imagePlanMap": {
+            "name": "[parameters('imagePlanName')]",
+            "publisher": "[parameters('imagePlanPublisher')]",
+            "product": "[parameters('imagePlanProduct')]"
+        },
+        "SetVmSecurityType": {
+            "securityType": "[if(or(equals(parameters('vmSecurityType'), 'TrustedLaunchSupported'), equals(parameters('vmSecurityType'), 'ConfidentialVmSupported'), equals(parameters('vmSecurityType'), 'TrustedLaunchAndConfidentialVmSupported'), equals(parameters('vmSecurityType'), 'None')), '', parameters('vmSecurityType'))]"
+        },
+        "customScriptExtensionURI": "https://experienceazure.blob.core.windows.net/vmaas/s/arm-templates/scripts/psscript.ps1",
+        "cloudlabsExtensionURI": "https://experienceazure.blob.core.windows.net/templates/cloudlabs-common/cloudlabs-windows-functions.ps1",
+        "osDiskManaged": {
+            "createOption": "FromImage",
+            "name": "[variables('osdiskname')]",
+            "caching": "ReadWrite",
+            "managedDisk": {
+                "storageAccountType": "[parameters('vmOsDiskType')]",
+                "securityProfile": "[if(and(equals(parameters('vmImageType'), 'custom'), equals(parameters('vmSecurityType'), 'ConfidentialVM')), json('{\"securityEncryptionType\": \"VMGuestStateOnly\"}'), json('null'))]"
+            },
+            "diskSizeGB": "[parameters('vmOSDiskSizeGB')]"
+        },
+        "osDiskEphemeral": {
+            "createOption": "FromImage",
+            "name": "[variables('osdiskname')]",
+            "caching": "ReadOnly",
+            "diffDiskSettings": {
+                "option": "Local",
+                "placement": "[parameters('ephemeralOSDiskPlacement')]"
+            },
+            "managedDisk": {
+                "storageAccountType": "Premium_LRS"
+            }
+        },
+        "dataDisksFromImage": [
+            {
+                "lun": 0,
+                "createOption": "Attach",
+                "caching": "None",
+                "deleteOption": "Detach",
+                "managedDisk": {
+                    "id": "[resourceId('Microsoft.Compute/disks', variables('dataDiskName'))]"
+                }
+            }
+        ],
+        "nsgRulesDedicated": [
+            {
+                "name": "default-allow-rdp",
+                "properties": {
+                    "description": "Allow RDP",
+                    "protocol": "Tcp",
+                    "sourcePortRange": "*",
+                    "destinationPortRange": "3389",
+                    "sourceAddressPrefix": "*",
+                    "destinationAddressPrefix": "*",
+                    "access": "Allow",
+                    "priority": 1000,
+                    "direction": "Inbound"
+                }
+            },
+            {
+                "name": "allow-8888",
+                "properties": {
+                    "description": "Allow port 8888",
+                    "protocol": "Tcp",
+                    "sourcePortRange": "*",
+                    "destinationPortRange": "8888",
+                    "sourceAddressPrefix": "*",
+                    "destinationAddressPrefix": "*",
+                    "access": "Allow",
+                    "priority": 1100,
+                    "direction": "Inbound"
+                }
+            },
+            {
+                "name": "allow-8787",
+                "properties": {
+                    "description": "Allow port 8787",
+                    "protocol": "Tcp",
+                    "sourcePortRange": "*",
+                    "destinationPortRange": "8787",
+                    "sourceAddressPrefix": "*",
+                    "destinationAddressPrefix": "*",
+                    "access": "Allow",
+                    "priority": 1200,
+                    "direction": "Inbound"
+                }
+            },
+            {
+                "name": "allow-80",
+                "properties": {
+                    "description": "Allow HTTP",
+                    "protocol": "Tcp",
+                    "sourcePortRange": "*",
+                    "destinationPortRange": "80",
+                    "sourceAddressPrefix": "*",
+                    "destinationAddressPrefix": "*",
+                    "access": "Allow",
+                    "priority": 1400,
+                    "direction": "Inbound"
+                }
+            },
+            {
+                "name": "allow-SSH",
+                "properties": {
+                    "description": "Allow SSH",
+                    "protocol": "Tcp",
+                    "sourcePortRange": "*",
+                    "destinationPortRange": "22",
+                    "sourceAddressPrefix": "*",
+                    "destinationAddressPrefix": "*",
+                    "access": "Allow",
+                    "priority": 1500,
+                    "direction": "Inbound"
+                }
+            }
+        ],
+        "nsgRulesShared": [
+            {
+                "name": "allow-rdp-from-internet",
+                "properties": {
+                    "description": "RDP via shared LB port slot (client IP preserved)",
+                    "protocol": "Tcp",
+                    "sourcePortRange": "*",
+                    "destinationPortRange": "3389",
+                    "sourceAddressPrefix": "Internet",
+                    "destinationAddressPrefix": "*",
+                    "access": "Allow",
+                    "priority": 1000,
+                    "direction": "Inbound"
+                }
+            },
+            {
+                "name": "deny-lab-to-lab",
+                "properties": {
+                    "description": "Block lab-to-lab traffic in the shared VNet",
+                    "protocol": "*",
+                    "sourcePortRange": "*",
+                    "destinationPortRange": "*",
+                    "sourceAddressPrefix": "VirtualNetwork",
+                    "destinationAddressPrefix": "*",
+                    "access": "Deny",
+                    "priority": 4000,
+                    "direction": "Inbound"
+                }
+            }
+        ]
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2016-09-01",
+            "name": "pid-e843308b-3ce2-42a2-b743-2f21b36a5e68",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": []
+                }
+            }
+        },
+        {
+            "condition": "[not(variables('useExistingVnet'))]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2020-06-01",
+            "name": "[variables('newVirtualNetworkName')]",
+            "location": "[variables('region')]",
+            "dependsOn": [
+                "[variables('networkSecurityGroupName')]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[variables('newVnetAddressPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[variables('newVnetSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[variables('newVnetSubnetPrefix')]",
+                            "privateEndpointNetworkPolicies": "Enabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2023-11-01",
+            "name": "[variables('networkSecurityGroupName')]",
+            "location": "[variables('region')]",
+            "properties": {
+                "securityRules": "[if(variables('isSharedIp'), variables('nsgRulesShared'), variables('nsgRulesDedicated'))]"
+            }
+        },
+        {
+            "condition": "[not(variables('isSharedIp'))]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2018-01-01",
+            "name": "[variables('publicIpAddressName')]",
+            "location": "[variables('region')]",
+            "sku": {
+                "name": "[variables('ipAddressSku')]",
+                "tier": "[variables('iptier')]"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "[variables('iPAllocationMethod')]",
+                "dnsSettings": {
+                    "domainNameLabel": "[concat(variables('publicIpAddressDNSName'))]"
+                }
+            }
+        },
+        {
+            "condition": "[variables('runSharedIngress')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2022-09-01",
+            "name": "[variables('bootstrapDeploymentName')]",
+            "resourceGroup": "[variables('sharedIngressRg')]",
+            "properties": {
+                "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+                "parameters": {
+                    "bootstrapMode": {
+                        "value": "[parameters('sharedIngressBootstrap')]"
+                    },
+                    "location": {
+                        "value": "[if(variables('runSharedIngress'), reference(variables('labVnetId'), '2024-05-01', 'Full').location, variables('region'))]"
+                    },
+                    "vnetName": {
+                        "value": "[parameters('existingVirtualNetworkName')]"
+                    },
+                    "subnetName": {
+                        "value": "[parameters('existingVnetSubnetName')]"
+                    },
+                    "currentSubnetProperties": {
+                        "value": "[if(and(variables('runSharedIngress'), equals(parameters('sharedCreateNatGateway'), 'yes')), reference(variables('vmSubnetId'), '2024-05-01'), createObject())]"
+                    },
+                    "lbName": {
+                        "value": "[parameters('sharedLoadBalancerName')]"
+                    },
+                    "rdpPipName": {
+                        "value": "[parameters('sharedPublicIpName')]"
+                    },
+                    "dnsLabel": {
+                        "value": "[variables('sharedDnsLabel')]"
+                    },
+                    "slotCount": {
+                        "value": "[parameters('sharedRdpSlotCount')]"
+                    },
+                    "portStart": {
+                        "value": "[parameters('sharedRdpFrontendPortStart')]"
+                    },
+                    "rulePrefix": {
+                        "value": "[parameters('sharedRdpRulePrefix')]"
+                    },
+                    "createNatGateway": {
+                        "value": "[parameters('sharedCreateNatGateway')]"
+                    },
+                    "natGatewayName": {
+                        "value": "[parameters('sharedNatGatewayName')]"
+                    },
+                    "wireKeystone": {
+                        "value": "[and(variables('isFsLogixLab'), equals(parameters('keystonePrivateEndpointMode'), 'preProvisioned'))]"
+                    },
+                    "keystoneStorageId": {
+                        "value": "[variables('keystoneFilesAcctId')]"
+                    },
+                    "peName": {
+                        "value": "[variables('peName')]"
+                    },
+                    "dnsZoneName": {
+                        "value": "[variables('fileDnsZoneName')]"
+                    },
+                    "dnsLinkName": {
+                        "value": "[variables('linkName')]"
+                    }
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "metadata": {
+                        "description": "_ADVTECH-ADD. Shared ingress, deployed into the VNet resource group. Creates resources only when the RG marker tag is missing (first launch) or bootstrapMode='always'; otherwise every resource is skipped and nothing is written."
+                    },
+                    "parameters": {
+                        "bootstrapMode": {
+                            "type": "string"
+                        },
+                        "location": {
+                            "type": "string"
+                        },
+                        "vnetName": {
+                            "type": "string"
+                        },
+                        "subnetName": {
+                            "type": "string"
+                        },
+                        "currentSubnetProperties": {
+                            "type": "object"
+                        },
+                        "lbName": {
+                            "type": "string"
+                        },
+                        "rdpPipName": {
+                            "type": "string"
+                        },
+                        "dnsLabel": {
+                            "type": "string"
+                        },
+                        "slotCount": {
+                            "type": "int"
+                        },
+                        "portStart": {
+                            "type": "int"
+                        },
+                        "rulePrefix": {
+                            "type": "string"
+                        },
+                        "createNatGateway": {
+                            "type": "string"
+                        },
+                        "natGatewayName": {
+                            "type": "string"
+                        },
+                        "wireKeystone": {
+                            "type": "bool"
+                        },
+                        "keystoneStorageId": {
+                            "type": "string"
+                        },
+                        "peName": {
+                            "type": "string"
+                        },
+                        "dnsZoneName": {
+                            "type": "string"
+                        },
+                        "dnsLinkName": {
+                            "type": "string"
+                        }
+                    },
+                    "variables": {
+                        "rgTags": "[if(contains(resourceGroup(), 'tags'), coalesce(resourceGroup().tags, createObject()), createObject())]",
+                        "markerKey": "[concat('shared-ingress-', parameters('lbName'))]",
+                        "alreadyCreated": "[contains(variables('rgTags'), variables('markerKey'))]",
+                        "doBootstrap": "[or(equals(parameters('bootstrapMode'), 'always'), and(equals(parameters('bootstrapMode'), 'auto'), not(variables('alreadyCreated'))))]",
+                        "natOn": "[and(variables('doBootstrap'), equals(parameters('createNatGateway'), 'yes'))]",
+                        "keystoneOn": "[and(variables('doBootstrap'), parameters('wireKeystone'))]",
+                        "egressPipName": "[concat(parameters('natGatewayName'), '-pip')]",
+                        "lbFrontendName": "fe-rdp",
+                        "vnetId": "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]",
+                        "subnetId": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('subnetName'))]",
+                        "writableSubnetKeys": [
+                            "addressPrefix",
+                            "addressPrefixes",
+                            "networkSecurityGroup",
+                            "routeTable",
+                            "serviceEndpoints",
+                            "serviceEndpointPolicies",
+                            "delegations",
+                            "privateEndpointNetworkPolicies",
+                            "privateLinkServiceNetworkPolicies",
+                            "applicationGatewayIPConfigurations",
+                            "ipAllocations",
+                            "defaultOutboundAccess",
+                            "sharingScope",
+                            "ipamPoolPrefixAllocations"
+                        ],
+                        "keptSubnetProperties": "[toObject(filter(items(parameters('currentSubnetProperties')), lambda('p', contains(variables('writableSubnetKeys'), lambdaVariables('p').key))), lambda('p', lambdaVariables('p').key), lambda('p', lambdaVariables('p').value))]"
+                    },
+                    "resources": [
+                        {
+                            "condition": "[variables('doBootstrap')]",
+                            "type": "Microsoft.Network/publicIPAddresses",
+                            "apiVersion": "2024-05-01",
+                            "name": "[parameters('rdpPipName')]",
+                            "location": "[parameters('location')]",
+                            "sku": {
+                                "name": "Standard",
+                                "tier": "Regional"
+                            },
+                            "properties": {
+                                "publicIPAllocationMethod": "Static",
+                                "publicIPAddressVersion": "IPv4",
+                                "dnsSettings": {
+                                    "domainNameLabel": "[parameters('dnsLabel')]"
+                                }
+                            }
+                        },
+                        {
+                            "condition": "[variables('doBootstrap')]",
+                            "type": "Microsoft.Network/loadBalancers",
+                            "apiVersion": "2024-05-01",
+                            "name": "[parameters('lbName')]",
+                            "location": "[parameters('location')]",
+                            "sku": {
+                                "name": "Standard",
+                                "tier": "Regional"
+                            },
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('rdpPipName'))]"
+                            ],
+                            "properties": {
+                                "frontendIPConfigurations": [
+                                    {
+                                        "name": "[variables('lbFrontendName')]",
+                                        "properties": {
+                                            "publicIPAddress": {
+                                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('rdpPipName'))]"
+                                            }
+                                        }
+                                    }
+                                ],
+                                "copy": [
+                                    {
+                                        "name": "inboundNatRules",
+                                        "count": "[parameters('slotCount')]",
+                                        "input": {
+                                            "name": "[concat(parameters('rulePrefix'), padLeft(copyIndex('inboundNatRules'), 4, '0'))]",
+                                            "properties": {
+                                                "frontendIPConfiguration": {
+                                                    "id": "[resourceId('Microsoft.Network/loadBalancers/frontendIPConfigurations', parameters('lbName'), variables('lbFrontendName'))]"
+                                                },
+                                                "protocol": "Tcp",
+                                                "frontendPort": "[add(parameters('portStart'), copyIndex('inboundNatRules'))]",
+                                                "backendPort": 3389,
+                                                "idleTimeoutInMinutes": 30,
+                                                "enableFloatingIP": false,
+                                                "enableTcpReset": true
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "condition": "[variables('natOn')]",
+                            "type": "Microsoft.Network/publicIPAddresses",
+                            "apiVersion": "2024-05-01",
+                            "name": "[variables('egressPipName')]",
+                            "location": "[parameters('location')]",
+                            "sku": {
+                                "name": "Standard",
+                                "tier": "Regional"
+                            },
+                            "properties": {
+                                "publicIPAllocationMethod": "Static",
+                                "publicIPAddressVersion": "IPv4"
+                            }
+                        },
+                        {
+                            "condition": "[variables('natOn')]",
+                            "type": "Microsoft.Network/natGateways",
+                            "apiVersion": "2024-05-01",
+                            "name": "[parameters('natGatewayName')]",
+                            "location": "[parameters('location')]",
+                            "sku": {
+                                "name": "Standard"
+                            },
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Network/publicIPAddresses', variables('egressPipName'))]"
+                            ],
+                            "properties": {
+                                "idleTimeoutInMinutes": 4,
+                                "publicIpAddresses": [
+                                    {
+                                        "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('egressPipName'))]"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "condition": "[variables('natOn')]",
+                            "type": "Microsoft.Network/virtualNetworks/subnets",
+                            "apiVersion": "2024-05-01",
+                            "name": "[concat(parameters('vnetName'), '/', parameters('subnetName'))]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Network/natGateways', parameters('natGatewayName'))]"
+                            ],
+                            "properties": "[union(variables('keptSubnetProperties'), createObject('natGateway', createObject('id', resourceId('Microsoft.Network/natGateways', parameters('natGatewayName')))))]"
+                        },
+                        {
+                            "condition": "[variables('keystoneOn')]",
+                            "type": "Microsoft.Network/privateDnsZones",
+                            "apiVersion": "2020-06-01",
+                            "name": "[parameters('dnsZoneName')]",
+                            "location": "global"
+                        },
+                        {
+                            "condition": "[variables('keystoneOn')]",
+                            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                            "apiVersion": "2020-06-01",
+                            "name": "[concat(parameters('dnsZoneName'), '/', parameters('dnsLinkName'))]",
+                            "location": "global",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Network/privateDnsZones', parameters('dnsZoneName'))]"
+                            ],
+                            "properties": {
+                                "registrationEnabled": false,
+                                "virtualNetwork": {
+                                    "id": "[variables('vnetId')]"
+                                }
+                            }
+                        },
+                        {
+                            "condition": "[variables('keystoneOn')]",
+                            "type": "Microsoft.Network/privateEndpoints",
+                            "apiVersion": "2023-11-01",
+                            "name": "[parameters('peName')]",
+                            "location": "[parameters('location')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('subnetName'))]"
+                            ],
+                            "properties": {
+                                "subnet": {
+                                    "id": "[variables('subnetId')]"
+                                },
+                                "privateLinkServiceConnections": [
+                                    {
+                                        "name": "[parameters('peName')]",
+                                        "properties": {
+                                            "privateLinkServiceId": "[parameters('keystoneStorageId')]",
+                                            "groupIds": [
+                                                "file"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "condition": "[variables('keystoneOn')]",
+                            "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                            "apiVersion": "2023-11-01",
+                            "name": "[concat(parameters('peName'), '/default')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Network/privateEndpoints', parameters('peName'))]",
+                                "[resourceId('Microsoft.Network/privateDnsZones', parameters('dnsZoneName'))]"
+                            ],
+                            "properties": {
+                                "privateDnsZoneConfigs": [
+                                    {
+                                        "name": "file",
+                                        "properties": {
+                                            "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', parameters('dnsZoneName'))]"
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "condition": "[variables('doBootstrap')]",
+                            "type": "Microsoft.Resources/tags",
+                            "apiVersion": "2021-04-01",
+                            "name": "default",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Network/loadBalancers', parameters('lbName'))]",
+                                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('subnetName'))]",
+                                "[resourceId('Microsoft.Network/privateEndpoints/privateDnsZoneGroups', parameters('peName'), 'default')]",
+                                "[resourceId('Microsoft.Network/privateDnsZones/virtualNetworkLinks', parameters('dnsZoneName'), parameters('dnsLinkName'))]"
+                            ],
+                            "properties": {
+                                "tags": "[union(variables('rgTags'), createObject(variables('markerKey'), concat('slots=', string(parameters('slotCount')), ';firstPort=', string(parameters('portStart')))))]"
+                            }
+                        }
+                    ],
+                    "outputs": {
+                        "createdSharedIngress": {
+                            "type": "bool",
+                            "value": "[variables('doBootstrap')]"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "condition": "[variables('isSharedIp')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2022-09-01",
+            "name": "[variables('slotDeploymentName')]",
+            "dependsOn": [
+                "[variables('bootstrapDeploymentName')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+                "parameters": {
+                    "rules": {
+                        "value": "[if(variables('isSharedIp'), map(reference(variables('sharedLbId'), '2024-05-01').inboundNatRules, lambda('r', createObject('id', lambdaVariables('r').id, 'name', lambdaVariables('r').name, 'port', lambdaVariables('r').properties.frontendPort, 'owner', if(contains(lambdaVariables('r').properties, 'backendIPConfiguration'), lambdaVariables('r').properties.backendIPConfiguration.id, '')))), createArray())]"
+                    },
+                    "nicId": {
+                        "value": "[concat(resourceGroup().id, '/providers/Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]"
+                    },
+                    "deploymentId": {
+                        "value": "[parameters('DeploymentID')]"
+                    },
+                    "allocationMode": {
+                        "value": "[parameters('sharedPortAllocation')]"
+                    },
+                    "slotOverride": {
+                        "value": "[parameters('sharedRdpSlotOverride')]"
+                    },
+                    "rulePrefix": {
+                        "value": "[parameters('sharedRdpRulePrefix')]"
+                    },
+                    "lbId": {
+                        "value": "[variables('sharedLbId')]"
+                    }
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "metadata": {
+                        "description": "_ADVTECH-ADD. Picks the RDP NAT slot for this lab. No resources: it only reads the LB rule list passed in and returns the chosen rule id + port."
+                    },
+                    "parameters": {
+                        "rules": {
+                            "type": "array"
+                        },
+                        "nicId": {
+                            "type": "string"
+                        },
+                        "deploymentId": {
+                            "type": "string"
+                        },
+                        "allocationMode": {
+                            "type": "string"
+                        },
+                        "slotOverride": {
+                            "type": "int"
+                        },
+                        "rulePrefix": {
+                            "type": "string"
+                        },
+                        "lbId": {
+                            "type": "string"
+                        }
+                    },
+                    "variables": {
+                        "ownerPrefix": "[toLower(concat(parameters('nicId'), '/ipConfigurations/'))]",
+                        "pool": "[sort(filter(parameters('rules'), lambda('r', startsWith(lambdaVariables('r').name, parameters('rulePrefix')))), lambda('a', 'b', less(lambdaVariables('a').port, lambdaVariables('b').port)))]",
+                        "mine": "[filter(variables('pool'), lambda('r', startsWith(toLower(lambdaVariables('r').owner), variables('ownerPrefix'))))]",
+                        "free": "[filter(variables('pool'), lambda('r', empty(lambdaVariables('r').owner)))]",
+                        "useFixedSlot": "[or(equals(parameters('allocationMode'), 'deterministic'), greaterOrEquals(parameters('slotOverride'), 0))]",
+                        "fixedIndex": "[if(greaterOrEquals(parameters('slotOverride'), 0), parameters('slotOverride'), mod(int(parameters('deploymentId')), max(length(variables('pool')), 1)))]",
+                        "noSlot": {
+                            "id": "[concat(parameters('lbId'), '/inboundNatRules/NO-FREE-RDP-SLOT-IN-SHARED-POOL')]",
+                            "name": "NO-FREE-RDP-SLOT-IN-SHARED-POOL",
+                            "port": 0,
+                            "owner": ""
+                        },
+                        "pick": "[if(variables('useFixedSlot'), if(less(variables('fixedIndex'), length(variables('pool'))), variables('pool')[variables('fixedIndex')], variables('noSlot')), if(greater(length(variables('mine')), 0), first(variables('mine')), if(greater(length(variables('free')), 0), variables('free')[mod(int(parameters('deploymentId')), length(variables('free')))], variables('noSlot'))))]"
+                    },
+                    "resources": [],
+                    "outputs": {
+                        "ruleId": {
+                            "type": "string",
+                            "value": "[variables('pick').id]"
+                        },
+                        "ruleName": {
+                            "type": "string",
+                            "value": "[variables('pick').name]"
+                        },
+                        "frontendPort": {
+                            "type": "int",
+                            "value": "[variables('pick').port]"
+                        },
+                        "freeSlotsBeforeThisLab": {
+                            "type": "int",
+                            "value": "[length(variables('free'))]"
+                        }
+                    }
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2021-08-01",
+            "name": "[variables('networkInterfaceName')]",
+            "location": "[variables('region')]",
+            "dependsOn": [
+                "[variables('networkSecurityGroupName')]",
+                "[variables('newVirtualNetworkName')]",
+                "[variables('publicIpAddressName')]",
+                "[resourceId('Microsoft.Resources/deployments', variables('slotDeploymentName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('vmSubnetId')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIpAddress": "[if(variables('isSharedIp'), json('null'), createObject('id', resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName')), 'properties', createObject('deleteOption', variables('vmNetworkDeleteOption'))))]",
+                            "loadBalancerInboundNatRules": "[if(variables('isSharedIp'), createArray(createObject('id', reference(resourceId('Microsoft.Resources/deployments', variables('slotDeploymentName')), '2022-09-01').outputs.ruleId.value)), createArray())]"
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[resourceId('Microsoft.Network/networkSecurityGroups',variables('networkSecurityGroupName'))]"
+                }
+            }
+        },
+        {
+            "condition": "[not(equals(parameters('dataDiskFromImage'), 'no'))]",
+            "type": "Microsoft.Compute/disks",
+            "apiVersion": "2023-04-02",
+            "name": "[variables('dataDiskName')]",
+            "location": "[variables('region')]",
+            "sku": {
+                "name": "Premium_LRS"
+            },
+            "properties": {
+                "creationData": {
+                    "createOption": "Empty"
+                },
+                "diskSizeGB": "[int(parameters('dataDiskSizeGB'))]"
+            }
+        },
+        {
+            "condition": "[variables('isFsLogixLab')]",
+            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+            "apiVersion": "2023-01-31",
+            "name": "[variables('uamiName')]",
+            "location": "[variables('region')]",
+            "tags": "[if(or(variables('isFsLogixLab'), not(equals(parameters('userData'), ''))), createObject('did', parameters('DeploymentID')), createObject())]"
+        },
+        {
+            "condition": "[variables('isFsLogixLab')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2022-09-01",
+            "name": "[concat('rbac-keyop-', parameters('DeploymentID'))]",
+            "subscriptionId": "[parameters('keystoneStorageSubscriptionId')]",
+            "resourceGroup": "[parameters('keystoneStorageResourceGroup')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uamiName'))]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+                "parameters": {
+                    "keystoneStorageAccountName": {
+                        "value": "[parameters('keystoneStorageAccountName')]"
+                    },
+                    "principalId": {
+                        "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uamiName')), '2023-01-31').principalId]"
+                    },
+                    "keyOperatorRoleId": {
+                        "value": "[parameters('keyOperatorRoleId')]"
+                    }
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "keystoneStorageAccountName": {
+                            "type": "string"
+                        },
+                        "principalId": {
+                            "type": "string"
+                        },
+                        "keyOperatorRoleId": {
+                            "type": "string"
+                        }
+                    },
+                    "resources": [
+                        {
+                            "type": "Microsoft.Authorization/roleAssignments",
+                            "apiVersion": "2022-04-01",
+                            "name": "[guid(resourceId('Microsoft.Storage/storageAccounts', parameters('keystoneStorageAccountName')), parameters('principalId'), parameters('keyOperatorRoleId'))]",
+                            "scope": "[concat('Microsoft.Storage/storageAccounts/', parameters('keystoneStorageAccountName'))]",
+                            "properties": {
+                                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', parameters('keyOperatorRoleId'))]",
+                                "principalId": "[parameters('principalId')]",
+                                "principalType": "ServicePrincipal"
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "condition": "[variables('perLabStorageWiring')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2022-09-01",
+            "name": "[concat('wire-storage-', parameters('DeploymentID'))]",
+            "resourceGroup": "[variables('wiringRg')]",
+            "dependsOn": [
+                "[variables('newVirtualNetworkName')]",
+                "[variables('bootstrapDeploymentName')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "expressionEvaluationOptions": {
+                    "scope": "inner"
+                },
+                "parameters": {
+                    "zoneName": {
+                        "value": "[variables('fileDnsZoneName')]"
+                    },
+                    "linkName": {
+                        "value": "[variables('linkName')]"
+                    },
+                    "peName": {
+                        "value": "[variables('peName')]"
+                    },
+                    "vnetId": {
+                        "value": "[variables('labVnetId')]"
+                    },
+                    "subnetId": {
+                        "value": "[variables('vmSubnetId')]"
+                    },
+                    "storageId": {
+                        "value": "[variables('keystoneFilesAcctId')]"
+                    },
+                    "location": {
+                        "value": "[variables('region')]"
+                    }
+                },
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {
+                        "zoneName": {
+                            "type": "string"
+                        },
+                        "linkName": {
+                            "type": "string"
+                        },
+                        "peName": {
+                            "type": "string"
+                        },
+                        "vnetId": {
+                            "type": "string"
+                        },
+                        "subnetId": {
+                            "type": "string"
+                        },
+                        "storageId": {
+                            "type": "string"
+                        },
+                        "location": {
+                            "type": "string"
+                        }
+                    },
+                    "resources": [
+                        {
+                            "type": "Microsoft.Network/privateDnsZones",
+                            "apiVersion": "2020-06-01",
+                            "name": "[parameters('zoneName')]",
+                            "location": "global"
+                        },
+                        {
+                            "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+                            "apiVersion": "2020-06-01",
+                            "name": "[concat(parameters('zoneName'), '/', parameters('linkName'))]",
+                            "location": "global",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Network/privateDnsZones', parameters('zoneName'))]"
+                            ],
+                            "properties": {
+                                "registrationEnabled": false,
+                                "virtualNetwork": {
+                                    "id": "[parameters('vnetId')]"
+                                }
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/privateEndpoints",
+                            "apiVersion": "2023-11-01",
+                            "name": "[parameters('peName')]",
+                            "location": "[parameters('location')]",
+                            "properties": {
+                                "subnet": {
+                                    "id": "[parameters('subnetId')]"
+                                },
+                                "privateLinkServiceConnections": [
+                                    {
+                                        "name": "[parameters('peName')]",
+                                        "properties": {
+                                            "privateLinkServiceId": "[parameters('storageId')]",
+                                            "groupIds": [
+                                                "file"
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+                            "apiVersion": "2023-11-01",
+                            "name": "[concat(parameters('peName'), '/default')]",
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Network/privateEndpoints', parameters('peName'))]",
+                                "[resourceId('Microsoft.Network/privateDnsZones', parameters('zoneName'))]"
+                            ],
+                            "properties": {
+                                "privateDnsZoneConfigs": [
+                                    {
+                                        "name": "file",
+                                        "properties": {
+                                            "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', parameters('zoneName'))]"
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2024-07-01",
+            "name": "[variables('vmName')]",
+            "location": "[variables('region')]",
+            "identity": "[if(variables('isFsLogixLab'), variables('uaIdentityObject'), json('null'))]",
+            "plan": "[if(equals(parameters('imagePlanRequired'), 'yes'), variables('imagePlanMap'), json('null'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]",
+                "[resourceId('Microsoft.Compute/disks', variables('dataDiskName'))]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('uamiName'))]",
+                "[concat('wire-storage-', parameters('DeploymentID'))]"
+            ],
+            "tags": "[if(or(variables('isFsLogixLab'), not(equals(parameters('userData'), ''))), createObject('did', parameters('DeploymentID')), createObject())]",
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('virtualMachineSize')]"
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('networkInterfaceName'))]",
+                            "properties": {
+                                "primary": true,
+                                "deleteOption": "[variables('vmNetworkDeleteOption')]"
+                            }
+                        }
+                    ]
+                },
+                "securityProfile": "[if(and(equals(parameters('vmImageType'), 'custom'), not(equals(parameters('vmSecurityType'), 'GET-VM-CUSTOM-IMAGE-SECURITY-TYPE'))), if(or(equals(parameters('vmSecurityType'), 'ConfidentialVM'), equals(parameters('vmSecurityType'), 'TrustedLaunch')), json(concat('{\"uefiSettings\": {\"secureBootEnabled\": true, \"vTpmEnabled\": true}, \"securityType\": \"', parameters('vmSecurityType'), '\"}')), variables('SetVmSecurityType')), json('null'))]",
+                "storageProfile": {
+                    "osDisk": "[if(equals(parameters('ephemeralOSDisk'), 'yes'), variables('osDiskEphemeral'), variables('osDiskManaged'))]",
+                    "diskControllerType": "[if(equals(parameters('diskControllerType'), ''), json('null'), parameters('diskControllerType'))]",
+                    "dataDisks": "[if(not(equals(parameters('dataDiskFromImage'), 'no')), variables('dataDisksFromImage'), json('null'))]",
+                    "imageReference": "[if(equals(parameters('vmImageType'), 'marketplace'), variables('marketPlaceImageReference'), variables('customImageID'))]"
+                },
+                "osProfile": "[if(equals(parameters('vmCustomImageOsState'), 'Specialized'), json('null'), variables('osProfile'))]",
+                "userData": "[if(equals(variables('effectiveUserData'), ''), json('null'), variables('effectiveUserData'))]"
+            }
+        },
+        {
+            "condition": "[equals(parameters('runCloudLabsExtension'), 'yes')]",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "apiVersion": "2015-06-15",
+            "name": "[concat(variables('vmName'), '/', 'winExtension')]",
+            "location": "[variables('region')]",
+            "dependsOn": [
+                "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
+            ],
+            "tags": {},
+            "properties": {
+                "publisher": "Microsoft.Compute",
+                "type": "CustomScriptExtension",
+                "typeHandlerVersion": "1.10",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[variables('customScriptExtensionURI')]",
+                        "[variables('cloudlabsExtensionURI')]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File s/arm-templates/scripts/psscript.ps1 ', variables('Enable-CloudLabsEmbeddedShadow'), ' ', parameters('vmCustomImageOsState'), ' ', parameters('vmAdminUserName'), ' ', variables('vmPasswordAdmin'), ' ', parameters('provisionNonAdminUser'), ' ', parameters('vmNonAdminUserName'), ' ', variables('vmPasswordNonAdmin'), ' ', parameters('vmImageType'))]"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "DNS Name": {
+            "type": "string",
+            "value": "[if(variables('isSharedIp'), if(equals(parameters('dnsNameOutputFormat'), 'hostOnly'), reference(variables('sharedPipId'), '2024-05-01').dnsSettings.fqdn, concat(reference(variables('sharedPipId'), '2024-05-01').dnsSettings.fqdn, ':', string(reference(resourceId('Microsoft.Resources/deployments', variables('slotDeploymentName')), '2022-09-01').outputs.frontendPort.value))), reference(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIpAddressName')), '2018-01-01').dnsSettings.fqdn)]"
+        },
+        "RDP Port": {
+            "type": "string",
+            "value": "[if(variables('isSharedIp'), string(reference(resourceId('Microsoft.Resources/deployments', variables('slotDeploymentName')), '2022-09-01').outputs.frontendPort.value), '3389')]"
+        },
+        "Admin Username": {
+            "type": "string",
+            "value": "[parameters('vmAdminUserName')]"
+        },
+        "Admin Password": {
+            "type": "string",
+            "value": "[variables('vmPasswordAdmin')]"
+        },
+        "Nonadmin Username": {
+            "type": "string",
+            "value": "[parameters('vmNonAdminUserName')]"
+        },
+        "NonAdmin Password": {
+            "type": "string",
+            "value": "[variables('vmPasswordNonAdmin')]"
+        },
+        "VM Username": {
+            "type": "string",
+            "value": "[variables('outputUsername')]"
+        },
+        "VM Password": {
+            "type": "string",
+            "value": "[variables('outputPassword')]"
+        },
+        "Trainer Username": {
+            "type": "string",
+            "value": "[parameters('trainerUserName')]"
+        },
+        "Trainer Password": {
+            "type": "string",
+            "value": "[parameters('trainerUserPassword')]"
+        }
+    }
+}
